@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baseball Lineup Optimizer - Phillies Edition</title>
+    <style>
+        :root {
+            --phillies-red: #E81828;
+            --phillies-blue: #002D72;
+            --phillies-sand: #FDB827;
+            --white: #FFFFFF;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: var(--dark-gray);
+            background-color: var(--light-gray);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--phillies-blue);
+            color: var(--white);
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .logo {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            background-color: var(--phillies-red);
+            border-radius: 50%;
+            margin-right: 15px;
+            vertical-align: middle;
+            position: relative;
+            font-weight: bold;
+            font-size: 30px;
+            line-height: 50px;
+        }
+
+        .section {
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: var(--phillies-blue);
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--phillies-red);
+            padding-bottom: 10px;
+        }
+
+        .roster-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .roster-table th,
+        .roster-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .roster-table th {
+            background-color: var(--phillies-blue);
+            color: var(--white);
+        }
+
+        .roster-table tr:hover {
+            background-color: var(--light-gray);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background-color: var(--phillies-red);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: #c91420;
+        }
+
+        .btn-secondary {
+            background-color: var(--phillies-blue);
+            color: var(--white);
+        }
+
+        .btn-secondary:hover {
+            background-color: #001d52;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background-color: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--phillies-red);
+            transition: width 0.3s ease;
+            text-align: center;
+            line-height: 30px;
+            color: var(--white);
+            font-weight: bold;
+        }
+
+        .results {
+            margin-top: 20px;
+        }
+
+        .lineup-result {
+            background-color: var(--light-gray);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid var(--phillies-red);
+        }
+
+        .lineup-result h3 {
+            color: var(--phillies-blue);
+            margin-bottom: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: var(--phillies-red);
+        }
+
+        .form-group {
+            margin: 15px 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--phillies-blue);
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--phillies-red);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background-color: var(--light-gray);
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .stat-box h4 {
+            color: var(--phillies-blue);
+            margin-bottom: 5px;
+        }
+
+        .stat-box .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--phillies-red);
+        }
+
+        .control-panel {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .inning-stats {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: rgba(232, 24, 40, 0.1);
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .roster-table {
+                font-size: 14px;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><span class="logo">P</span>Baseball Lineup Optimizer</h1>
+            <p>Optimize your baseball lineup for maximum runs</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Roster Section -->
+        <div class="section">
+            <h2>Team Roster</h2>
+            <button class="btn btn-primary" onclick="showAddPlayerModal()">Add Player</button>
+            <table class="roster-table" id="rosterTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Hit Chance</th>
+                        <th>Single %</th>
+                        <th>Double %</th>
+                        <th>Triple %</th>
+                        <th>HR %</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="rosterBody">
+                    <!-- Players will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Optimization Controls -->
+        <div class="section">
+            <h2>Optimization Settings</h2>
+            <div class="control-panel">
+                <button class="btn btn-primary" id="startBtn" onclick="startOptimization()">
+                    Start Optimization
+                </button>
+                <button class="btn btn-danger hidden" id="stopBtn" onclick="stopOptimization()">
+                    Stop Optimization
+                </button>
+                <button class="btn btn-secondary" onclick="saveLineups()">
+                    Save Lineups
+                </button>
+                <button class="btn btn-secondary" onclick="loadLineups()">
+                    Load Lineups
+                </button>
+            </div>
+
+            <!-- Progress Bars -->
+            <div class="progress-container hidden" id="progressContainer">
+                <h3>Quick Analysis Progress</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="quickProgress" style="width: 0%">0%</div>
+                </div>
+                <h3>Deep Analysis Progress</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="deepProgress" style="width: 0%">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="section hidden" id="resultsSection">
+            <h2>Optimization Results</h2>
+            <div id="quickResults" class="results"></div>
+            <div id="deepResults" class="results"></div>
+        </div>
+    </div>
+
+    <!-- Edit Player Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>Edit Player</h2>
+            <form id="editForm" onsubmit="savePlayerEdit(event)">
+                <input type="hidden" id="editPlayerName">
+                <div class="form-group">
+                    <label>Hit Chance (0.0 - 1.0)</label>
+                    <input type="number" id="editHitChance" step="0.001" min="0" max="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Single Probability</label>
+                    <input type="number" id="editSingle" step="0.001" min="0" max="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Double Probability</label>
+                    <input type="number" id="editDouble" step="0.001" min="0" max="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Triple Probability</label>
+                    <input type="number" id="editTriple" step="0.001" min="0" max="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Home Run Probability</label>
+                    <input type="number" id="editHR" step="0.001" min="0" max="1" required>
+                </div>
+                <p style="color: var(--phillies-red); margin: 10px 0;">
+                    Note: Hit probabilities must sum to 1.0
+                </p>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Player Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddModal()">&times;</span>
+            <h2>Add New Player</h2>
+            <form id="addForm" onsubmit="addNewPlayer(event)">
+                <div class="form-group">
+                    <label>Player Name</label>
+                    <input type="text" id="addPlayerName" required>
+                </div>
+                <div class="form-group">
+                    <label>Hit Chance (0.0 - 1.0)</label>
+                    <input type="number" id="addHitChance" step="0.001" min="0" max="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Single Probability</label>
+                    <input type="number" id="addSingle" step="0.001" min="0" max="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Double Probability</label>
+                    <input type="number" id="addDouble" step="0.001" min="0" max="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Triple Probability</label>
+                    <input type="number" id="addTriple" step="0.001" min="0" max="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Home Run Probability</label>
+                    <input type="number" id="addHR" step="0.001" min="0" max="1" required>
+                </div>
+                <p style="color: var(--phillies-red); margin: 10px 0;">
+                    Note: Hit probabilities must sum to 1.0
+                </p>
+                <button type="submit" class="btn btn-primary">Add Player</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Player data structure
+        let players = {
+            "Jeremiah": { hitChance: 0.9, hitProbabilities: [0.6, 0.3, 0.1, 0] },
+            "Calvin": { hitChance: 0.9, hitProbabilities: [0.6, 0.3, 0.1, 0] },
+            "Ty": { hitChance: 0.4, hitProbabilities: [0.9, 0.1, 0, 0] },
+            "Dean": { hitChance: 0.6, hitProbabilities: [0.9, 0.1, 0, 0] },
+            "Harrison": { hitChance: 0.2, hitProbabilities: [1, 0, 0, 0] },
+            "Kai": { hitChance: 0.35, hitProbabilities: [0.6, 0.3, 0.1, 0] },
+            "Theo": { hitChance: 0.25, hitProbabilities: [0.95, 0.05, 0, 0] },
+            "Bob": { hitChance: 0.80, hitProbabilities: [0.8, 0.2, 0, 0] },
+            "Joe": { hitChance: 0.47, hitProbabilities: [1, 0, 0, 0] },
+            "Matt": { hitChance: 0.60, hitProbabilities: [1, 0, 0, 0] },
+            "Arnold": { hitChance: 0.50, hitProbabilities: [1, 0, 0, 0] }
+        };
+
+        let optimizationRunning = false;
+        let workers = [];
+        let quickResults = null;
+        let deepResults = null;
+
+        // Initialize the roster display
+        function displayRoster() {
+            const tbody = document.getElementById('rosterBody');
+            tbody.innerHTML = '';
+            
+            for (const [name, player] of Object.entries(players)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${name}</td>
+                    <td>${(player.hitChance * 100).toFixed(1)}%</td>
+                    <td>${(player.hitProbabilities[0] * 100).toFixed(1)}%</td>
+                    <td>${(player.hitProbabilities[1] * 100).toFixed(1)}%</td>
+                    <td>${(player.hitProbabilities[2] * 100).toFixed(1)}%</td>
+                    <td>${(player.hitProbabilities[3] * 100).toFixed(1)}%</td>
+                    <td>
+                        <button class="btn btn-secondary btn-small" onclick="editPlayer('${name}')">Edit</button>
+                        <button class="btn btn-danger btn-small" onclick="removePlayer('${name}')">Remove</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            }
+        }
+
+        // Edit player functions
+        function editPlayer(name) {
+            const player = players[name];
+            document.getElementById('editPlayerName').value = name;
+            document.getElementById('editHitChance').value = player.hitChance;
+            document.getElementById('editSingle').value = player.hitProbabilities[0];
+            document.getElementById('editDouble').value = player.hitProbabilities[1];
+            document.getElementById('editTriple').value = player.hitProbabilities[2];
+            document.getElementById('editHR').value = player.hitProbabilities[3];
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        function savePlayerEdit(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('editPlayerName').value;
+            const hitChance = parseFloat(document.getElementById('editHitChance').value);
+            const single = parseFloat(document.getElementById('editSingle').value);
+            const double = parseFloat(document.getElementById('editDouble').value);
+            const triple = parseFloat(document.getElementById('editTriple').value);
+            const hr = parseFloat(document.getElementById('editHR').value);
+            
+            // Validate probabilities sum to 1
+            const sum = single + double + triple + hr;
+            if (Math.abs(sum - 1.0) > 0.001) {
+                alert(`Hit probabilities must sum to 1.0. Current sum: ${sum.toFixed(3)}`);
+                return;
+            }
+            
+            players[name].hitChance = hitChance;
+            players[name].hitProbabilities = [single, double, triple, hr];
+            
+            displayRoster();
+            closeEditModal();
+        }
+
+        // Add player functions
+        function showAddPlayerModal() {
+            document.getElementById('addModal').style.display = 'block';
+            // Reset form
+            document.getElementById('addForm').reset();
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+        }
+
+        function addNewPlayer(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('addPlayerName').value;
+            const hitChance = parseFloat(document.getElementById('addHitChance').value);
+            const single = parseFloat(document.getElementById('addSingle').value);
+            const double = parseFloat(document.getElementById('addDouble').value);
+            const triple = parseFloat(document.getElementById('addTriple').value);
+            const hr = parseFloat(document.getElementById('addHR').value);
+            
+            // Check if player already exists
+            if (players[name]) {
+                alert('A player with this name already exists!');
+                return;
+            }
+            
+            // Validate probabilities sum to 1
+            const sum = single + double + triple + hr;
+            if (Math.abs(sum - 1.0) > 0.001) {
+                alert(`Hit probabilities must sum to 1.0. Current sum: ${sum.toFixed(3)}`);
+                return;
+            }
+            
+            players[name] = {
+                hitChance: hitChance,
+                hitProbabilities: [single, double, triple, hr]
+            };
+            
+            displayRoster();
+            closeAddModal();
+        }
+
+        // Remove player
+        function removePlayer(name) {
+            if (Object.keys(players).length <= 1) {
+                alert('You must have at least one player!');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to remove ${name}?`)) {
+                delete players[name];
+                displayRoster();
+            }
+        }
+
+        // Baseball simulation logic
+        function simulateGame(lineup, playerData) {
+            const gamePlayers = {};
+            for (const name of lineup) {
+                gamePlayers[name] = {
+                    ...playerData[name],
+                    currentBase: 0,
+                    isBatting: false
+                };
+            }
+            
+            gamePlayers[lineup[0]].isBatting = true;
+            let sumRuns = 0;
+            const inningStats = [];
+            
+            for (let inning = 1; inning <= 6; inning++) {
+                let currentOuts = 0;
+                let inningRuns = 0;
+                
+                while (currentOuts < 3 && inningRuns < 5) {
+                    const currentBatter = Object.entries(gamePlayers).find(([_, p]) => p.isBatting)[0];
+                    const batter = gamePlayers[currentBatter];
+                    
+                    if (Math.random() < batter.hitChance) {
+                        const typeOfHit = Math.random();
+                        let cumulativeProb = 0;
+                        
+                        for (let base = 0; base < 4; base++) {
+                            cumulativeProb += batter.hitProbabilities[base];
+                            if (typeOfHit < cumulativeProb) {
+                                batter.currentBase = base + 1;
+                                break;
+                            }
+                        }
+                        
+                        // Handle home run
+                        if (batter.currentBase === 4) {
+                            inningRuns++;
+                            sumRuns++;
+                            batter.currentBase = 0;
+                        }
+                        
+                        // Advance runners
+                        for (const [runnerName, runner] of Object.entries(gamePlayers)) {
+                            if (runner.currentBase > 0 && runnerName !== currentBatter) {
+                                runner.currentBase += batter.currentBase;
+                                if (runner.currentBase >= 4) {
+                                    inningRuns++;
+                                    sumRuns++;
+                                    runner.currentBase = 0;
+                                    if (inningRuns >= 5) break;
+                                }
+                            }
+                        }
+                        
+                        if (inningRuns >= 5) break;
+                    } else {
+                        currentOuts++;
+                    }
+                    
+                    // Update batting order
+                    const currentIdx = lineup.indexOf(currentBatter);
+                    const nextIdx = (currentIdx + 1) % lineup.length;
+                    batter.isBatting = false;
+                    gamePlayers[lineup[nextIdx]].isBatting = true;
+                }
+                
+                // Reset bases after inning
+                for (const player of Object.values(gamePlayers)) {
+                    player.currentBase = 0;
+                }
+                
+                inningStats.push({
+                    runs: inningRuns,
+                    fiveRunInning: inningRuns === 5
+                });
+            }
+            
+            return {
+                runs: sumRuns,
+                inningStats: inningStats
+            };
+        }
+
+        // Worker code for parallel optimization
+        const workerCode = `
+            ${simulateGame.toString()}
+
+            self.addEventListener('message', function(e) {
+                const { type, players, mode } = e.data;
+                
+                if (type === 'optimize') {
+                    const playerNames = Object.keys(players);
+                    const results = [];
+                    
+                    if (mode === 'quick') {
+                        const gamesPerLineup = 10;
+                        const sampleSize = Math.min(100000, factorial(playerNames.length));
+                        
+                        for (let i = 0; i < sampleSize; i++) {
+                            const lineup = shuffle([...playerNames]);
+                            let totalRuns = 0;
+                            
+                            for (let j = 0; j < gamesPerLineup; j++) {
+                                const result = simulateGame(lineup, players);
+                                totalRuns += result.runs;
+                            }
+                            
+                            const avgRuns = totalRuns / gamesPerLineup;
+                            results.push({ lineup, avgRuns });
+                            
+                            // Report progress
+                            if (i % 1000 === 0) {
+                                self.postMessage({
+                                    type: 'progress',
+                                    progress: (i / sampleSize) * 100
+                                });
+                            }
+                        }
+                    } else {
+                        // Deep analysis
+                        const allLineups = permutations(playerNames);
+                        const totalLineups = factorial(playerNames.length);
+                        const gamesPerLineup = 100;
+                        let evaluated = 0;
+                        
+                        for (const lineup of allLineups) {
+                            let totalRuns = 0;
+                            
+                            for (let j = 0; j < gamesPerLineup; j++) {
+                                const result = simulateGame(lineup, players);
+                                totalRuns += result.runs;
+                            }
+                            
+                            const avgRuns = totalRuns / gamesPerLineup;
+                            results.push({ lineup, avgRuns });
+                            
+                            evaluated++;
+                            // Report progress
+                            if (evaluated % 100 === 0) {
+                                self.postMessage({
+                                    type: 'progress',
+                                    progress: (evaluated / totalLineups) * 100
+                                });
+                            }
+                        }
+                    }
+                    
+                    // Sort and return top 3
+                    results.sort((a, b) => b.avgRuns - a.avgRuns);
+                    self.postMessage({
+                        type: 'complete',
+                        results: results.slice(0, 3)
+                    });
+                }
+            });
+
+            function shuffle(array) {
+                const arr = [...array];
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            }
+
+            function factorial(n) {
+                if (n <= 1) return 1;
+                return n * factorial(n - 1);
+            }
+
+            function* permutations(array) {
+                if (array.length <= 1) {
+                    yield array;
+                    return;
+                }
+                
+                for (let i = 0; i < array.length; i++) {
+                    const rest = [...array.slice(0, i), ...array.slice(i + 1)];
+                    for (const perm of permutations(rest)) {
+                        yield [array[i], ...perm];
+                    }
+                }
+            }
+        `;
+
+        // Optimization functions
+        function startOptimization() {
+            if (optimizationRunning) return;
+            
+            optimizationRunning = true;
+            quickResults = null;
+            deepResults = null;
+            
+            // Update UI
+            document.getElementById('startBtn').classList.add('hidden');
+            document.getElementById('stopBtn').classList.remove('hidden');
+            document.getElementById('progressContainer').classList.remove('hidden');
+            document.getElementById('resultsSection').classList.add('hidden');
+            
+            // Reset progress
+            updateProgress('quick', 0);
+            updateProgress('deep', 0);
+            
+            // Create workers
+            const quickWorker = new Worker(URL.createObjectURL(new Blob([workerCode], { type: 'application/javascript' })));
+            const deepWorker = new Worker(URL.createObjectURL(new Blob([workerCode], { type: 'application/javascript' })));
+            
+            workers = [quickWorker, deepWorker];
+            
+            // Quick analysis
+            quickWorker.addEventListener('message', function(e) {
+                if (e.data.type === 'progress') {
+                    updateProgress('quick', e.data.progress);
+                } else if (e.data.type === 'complete') {
+                    quickResults = e.data.results;
+                    displayQuickResults();
+                    checkCompletion();
+                }
+            });
+            
+            // Deep analysis
+            deepWorker.addEventListener('message', function(e) {
+                if (e.data.type === 'progress') {
+                    updateProgress('deep', e.data.progress);
+                } else if (e.data.type === 'complete') {
+                    deepResults = e.data.results;
+                    displayDeepResults();
+                    checkCompletion();
+                }
+            });
+            
+            // Start optimization
+            quickWorker.postMessage({ type: 'optimize', players, mode: 'quick' });
+            deepWorker.postMessage({ type: 'optimize', players, mode: 'deep' });
+        }
+
+        function stopOptimization() {
+            optimizationRunning = false;
+            
+            // Terminate workers
+            workers.forEach(worker => worker.terminate());
+            workers = [];
+            
+            // Update UI
+            document.getElementById('startBtn').classList.remove('hidden');
+            document.getElementById('stopBtn').classList.add('hidden');
+            
+            // Show results if any
+            if (quickResults || deepResults) {
+                document.getElementById('resultsSection').classList.remove('hidden');
+            }
+        }
+
+        function updateProgress(type, progress) {
+            const element = document.getElementById(type + 'Progress');
+            element.style.width = progress + '%';
+            element.textContent = progress.toFixed(1) + '%';
+        }
+
+        function checkCompletion() {
+            if (quickResults && deepResults) {
+                stopOptimization();
+            }
+        }
+
+        function displayQuickResults() {
+            if (!quickResults) return;
+            
+            const container = document.getElementById('quickResults');
+            container.innerHTML = '<h3>Preliminary Results (Quick Analysis)</h3>';
+            
+            quickResults.forEach((result, index) => {
+                const div = createResultDisplay(result, index + 1);
+                container.appendChild(div);
+            });
+            
+            document.getElementById('resultsSection').classList.remove('hidden');
+        }
+
+        function displayDeepResults() {
+            if (!deepResults) return;
+            
+            const container = document.getElementById('deepResults');
+            container.innerHTML = '<h3>Refined Results (Deep Analysis)</h3>';
+            
+            deepResults.forEach((result, index) => {
+                const div = createResultDisplay(result, index + 1);
+                container.appendChild(div);
+            });
+            
+            document.getElementById('resultsSection').classList.remove('hidden');
+        }
+
+        function createResultDisplay(result, rank) {
+            const div = document.createElement('div');
+            div.className = 'lineup-result';
+            
+            // Run detailed analysis
+            let totalStats = {
+                totalRuns: 0,
+                fiveRunInnings: 0,
+                inningRuns: [[], [], [], [], [], []],
+                games: 100
+            };
+            
+            for (let i = 0; i < totalStats.games; i++) {
+                const gameResult = simulateGame(result.lineup, players);
+                totalStats.totalRuns += gameResult.runs;
+                
+                gameResult.inningStats.forEach((inning, idx) => {
+                    totalStats.inningRuns[idx].push(inning.runs);
+                    if (inning.fiveRunInning) {
+                        totalStats.fiveRunInnings++;
+                    }
+                });
+            }
+            
+            const avgRuns = totalStats.totalRuns / totalStats.games;
+            const fiveRunPct = (totalStats.fiveRunInnings / (totalStats.games * 6)) * 100;
+            
+            let html = `
+                <h3>#${rank} - Average Runs: ${avgRuns.toFixed(2)}</h3>
+                <p><strong>Lineup:</strong> ${result.lineup.join(' → ')}</p>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <h4>Games Analyzed</h4>
+                        <div class="value">${totalStats.games}</div>
+                    </div>
+                    <div class="stat-box">
+                        <h4>5-Run Innings</h4>
+                        <div class="value">${totalStats.fiveRunInnings}</div>
+                        <small>(${fiveRunPct.toFixed(1)}%)</small>
+                    </div>
+                </div>
+                <div class="inning-stats">
+                    <h4>Inning-by-Inning Analysis:</h4>
+            `;
+            
+            totalStats.inningRuns.forEach((runs, idx) => {
+                const avgInningRuns = runs.reduce((a, b) => a + b, 0) / runs.length;
+                const maxRuns = Math.max(...runs);
+                const zeroRunPct = (runs.filter(r => r === 0).length / runs.length) * 100;
+                
+                html += `
+                    <div style="margin: 10px 0;">
+                        <strong>Inning ${idx + 1}:</strong>
+                        Avg Runs: ${avgInningRuns.toFixed(2)}, 
+                        Max: ${maxRuns}, 
+                        Scoreless: ${zeroRunPct.toFixed(1)}%
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            div.innerHTML = html;
+            
+            return div;
+        }
+
+        // Save/Load functionality
+        function saveLineups() {
+            const data = {
+                players: players,
+                quickResults: quickResults,
+                deepResults: deepResults,
+                timestamp: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `lineup_optimization_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function loadLineups() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        // Load players
+                        if (data.players) {
+                            players = data.players;
+                            displayRoster();
+                        }
+                        
+                        // Load results
+                        if (data.quickResults) {
+                            quickResults = data.quickResults;
+                            displayQuickResults();
+                        }
+                        
+                        if (data.deepResults) {
+                            deepResults = data.deepResults;
+                            displayDeepResults();
+                        }
+                        
+                        alert('Lineup data loaded successfully!');
+                    } catch (err) {
+                        alert('Error loading file: ' + err.message);
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            displayRoster();
+        }
+
+    </script>
+</body>
+</html>
