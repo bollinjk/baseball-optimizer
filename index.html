@@ -914,9 +914,8 @@
             const div = document.createElement('div');
             div.className = 'lineup-result';
             
-            // Run detailed analysis
+            // Run detailed analysis for additional statistics only
             let totalStats = {
-                totalRuns: 0,
                 fiveRunInnings: 0,
                 inningRuns: [[], [], [], [], [], []],
                 games: 100
@@ -924,7 +923,6 @@
             
             for (let i = 0; i < totalStats.games; i++) {
                 const gameResult = simulateGame(result.lineup, players);
-                totalStats.totalRuns += gameResult.runs;
                 
                 gameResult.inningStats.forEach((inning, idx) => {
                     totalStats.inningRuns[idx].push(inning.runs);
@@ -934,7 +932,8 @@
                 });
             }
             
-            const avgRuns = totalStats.totalRuns / totalStats.games;
+            // Use the original average runs from the optimization (this is what was used for sorting)
+            const avgRuns = result.avgRuns;
             const fiveRunPct = (totalStats.fiveRunInnings / (totalStats.games * 6)) * 100;
             
             let html = `
@@ -944,6 +943,7 @@
                     <div class="stat-box">
                         <h4>Games Analyzed</h4>
                         <div class="value">${totalStats.games}</div>
+                        <small>(Additional stats only)</small>
                     </div>
                     <div class="stat-box">
                         <h4>5-Run Innings</h4>
